@@ -11,7 +11,6 @@
 
 	<title>jQuery Annotate</title>
 	<link rel="stylesheet" href="css/style.css" />
-	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/ui-lightness/jquery-ui.css" />
 
 	<!-- IE Fix for HTML5 Tags -->
 	<!--[if lt IE 9]>
@@ -31,7 +30,18 @@
 	<script src="js/jquery-annotate.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function(e) {
-			$("img").imageFeedback();
+
+			var testMarkers = {"1":{"value":"save","width":50,"height":50,"offsetTop":"61px","offsetLeft":"176px"},"2":{"value":"this","width":50,"height":50,"offsetTop":"114px","offsetLeft":"314px"},"3":{"value":"here","width":50,"height":50,"offsetTop":"272px","offsetLeft":"171px"}}
+
+			$("img").imageFeedback({
+				markers: testMarkers,
+				commentSaved: function(e, comment, serialized) {
+					// console.log('e', e)
+					// console.log('comment', comment)
+					// console.log('serialized', serialized)
+				}
+			});
+
 		});
 	</script>
 </body>

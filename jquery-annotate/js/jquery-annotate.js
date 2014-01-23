@@ -1,117 +1,186 @@
+/*!
+ * Image Annotation/Feedback Plugin
+ * Author: nickbudden.com
+ * Licensed under the MIT license
+ */
 ;(function ( $, window, document, undefined ) {
 
   $.widget( "nb.imageFeedback" , {
 
+  	/*
+			- there's an issue with numbers not resetting right when you click to delete
+			- extract some of the create marker stuff into its own classes
+			- give it four corners
+			- guess the drag direction (and drag handle) you want based on which direction you drag in
+			- I should probably rename 'Offset since it's actually abs positioning'
+			- resizing sometimes stops, when creating on drag. Probably something to do with triggering events.
+			- move the number and X onto the side, fadeout without hover to 40%ish, fade in on hover
+			- comment and refactor
+
+			Make an option for the serialized array to create with, test it with a loop of addMarker
+
+  	*/
+
     //Options to be used as defaults
     options: {
-      commentNum: 0,
-      isDragging: false,
-      isResizing: false
+    	markers      : false,
+      commentNum   : 0,
+      isDragging   : false,
+      wasDragging  : false,
+      isResizing   : false
     },
 
     _create: function () {
-    	var _this        = this,
-    			$element     = _this.element,
-    			$wrap        = $element.wrapAll("<div class='jquery-annotate-wrap' />").parent(),
-    			isDragging   = false,
-    			wasDragging,
+    	var _this   = this,
+    			$el     = _this.element,
+    			$w      = $(window),
+    			$editingMarker,
     			mousedownX,
     			mousedownY,
     			mouseChangeX,
     			mouseChangeY;
 
-			// Don't drag the image
-    	$element.on('dragstart', function(e) {
-    		e.preventDefault();
-    	});
+    	// Wrap the image, so we can position our markers
+			$el.wrapAll("<div class='jquery-annotate-wrap' />").parent();
 
-    	// Differentiate between a click and a drag, and
-    	// fire a different event for each
+			// If we have passed markers, load them
+			if(this.options.markers) {
+				$.each(this.options.markers, function(i, element) {
+					_this.addMarker(null, element.width, element.height, element.value, element.offsetTop, element.offsetLeft);
+				});
+			}
+
+			// Don't allow dragging of the image itself
+    	$el.on('dragstart', function(e) {
+    		e.preventDefault();
+    	})
+    	// Differentiate between a click and a drag,
+    	// firing a different event for each
 			// http://stackoverflow.com/a/4139860/740836
-			$element.mousedown(function(e) {
+			.mousedown(function(e) {
 				mousedownX = e.offsetX;
 				mousedownY = e.offsetY;
 
-				// If this is a drag
-		    $(window).mousemove(function(e) {
-	        isDragging = true;
+				// This is a drag
+		    $w.mousemove(function(e) {
+	        _this._setOption('isDragging', true);
 	        mouseChangeX = Math.abs( Math.abs(mousedownX) - Math.abs(e.offsetX) );
 	        mouseChangeY = Math.abs( Math.abs(mousedownY) - Math.abs(e.offsetY) );
 
 	        // Make them drag at least 8px before we create our box
-	        if(mouseChangeX >= 8 || mouseChangeY >= 8) {
-	        	$(window).unbind("mousemove");
-    				_this.setActiveMarker( _this.addMarker(e, mouseChangeX, mouseChangeY) );
+	        if(mouseChangeX >= 50 || mouseChangeY >= 50) {
+	        	var $marker, handle;
+
+	        	$w.unbind("mousemove");
+
+	        	$marker = _this.addMarker(e, mouseChangeX, mouseChangeY);
+	        	// If changeX negative then sw otherwise se
+
+    				// If we're creating a box while dragging, we'll
+    				// want to manually trigger jQuery UI's draggable
+    				// handle
+    				// http://stackoverflow.com/a/19768036/740836
+    				// TODO: check whether it's se or sw
+    				// If this works, figure out which handle next
+					  $marker.find(".ui-resizable-se")
+					    .trigger("mouseover")
+					    .trigger({
+					      type: "mousedown",
+					      which: 1,
+					      pageX: e.pageX,
+					      pageY: e.pageY
+					  });
 	        }
 		    });
 
 			}).mouseup(function(e) {
-			    wasDragging = isDragging;
-			    isDragging = false;
-			    $(window).unbind("mousemove");
+				_this._setOption('wasDragging', _this.options.isDragging);
+				_this._setOption('isDragging', false);
+				_this._setOption('wasDragging', false);
 
-			    // If this was a click (and not a drag)
-			    if (!wasDragging) {
-			    	_this.setActiveMarker( _this.addMarker(e) );
-			    }
+		    $w.unbind("mousemove");
+
+		    // This was a click, not a drag
+		    if (!_this.options.wasDragging) {
+		    	$editingMarker = $(".jquery-annotate-comment-edit");
+
+		    	// If something's open to edit, hide it on click
+		    	if($editingMarker.length > 0) {
+		    		_this.stopEditingMarker( $editingMarker );
+
+		    	// If nothing's open, create a new marker on click
+		    	} else {
+			    	_this.editMarker( _this.addMarker(e) );
+		    	}
+		    }
+
 			});
 
     },
 
-    addMarker: function(e, width, height) {
-    	var _this      = this,
-    			$element   = _this.element;
-    			offsetX    = e.offsetX,
-    			offsetY    = e.offsetY,
-    			startDrag  = false,
-    			commentNum = _this._setOption( 'commentNum', _this.options.commentNum + 1 ),
-					$marker    = $(_this.markerHTML(_this.options.commentNum));
+    addMarker: function(e, width, height, value, offsetTop, offsetLeft) {
+    	var _this       = this,
+    			value       = (typeof value !== 'undefined') ? $.trim(value) : false,
+    			offsetTop   = (typeof offsetTop !== 'undefined') ? offsetTop : e.offsetY,
+    			offsetLeft  = (typeof offsetLeft !== 'undefined') ? offsetLeft : e.offsetX,
+    			commentNum  = 0,
+    			$marker;
+
+			commentNum = _this._setOption( 'commentNum', _this.options.commentNum + 1 );
+			$marker = $(_this.markerHTML(commentNum));
 
 			// If width hasn't been set, set to 50 and
-			// center box my moving offset half the size
-			// Note that width/height aren't set on drag,
-			// so we start that event here
+			// center box on cursor by moving offset half
+			// the width Note that width/height aren't set
+			// on drag, so we start that event here
 			if(typeof width === "undefined") {
 				width = 50;
-				offsetX = offsetX - 25;
-			} else {
-				startDrag = true;
+				offsetLeft = offsetLeft - 25;
 			}
 
 			// Same as above
 			if(typeof height === "undefined") {
 				height = 50;
-				offsetY = offsetY - 25;
-			} else {
-				startDrag = true;
+				offsetTop = offsetTop - 25;
+			}
+
+			if(value) {
+				$marker.find('textarea').val(value);
+				$marker.find('p').text(value);
 			}
 
 			$marker.css({
-    		left: offsetX,
-    		top: offsetY,
+    		left: offsetLeft,
+    		top: offsetTop,
     		width: width,
     		height: height
     	})
-    	.appendTo($element.parent())
+    	.appendTo(_this.element.parent())
     	.draggable({
+    		// TODO: add a handle so you can't drag by the comment itself
+    		// It needs to be something absolutely positioned inside the comment...because
+    		// the comment bubble is inside of the current div
+    		// handle: '.jquery-annotate-comment',
 				containment: 'parent',
 				opacity: 0.5,
 				start: function( e, ui ) {
 					_this._setOption('isDragging', true);
-					_this.hideComment( $(this) );
+					_this.hideComment( this );
 				},
 				stop: function( e, ui ) {
 					_this._setOption('isDragging', false);
-					_this.showComment( $(this) );
+					_this.editMarker( this );
 				}
 			})
 			.resizable({
+				minHeight: 50,
+				minWidth: 50,
 				handles: 'se, sw',
 				// TODO: get rid of the $marker reference, and put the parent into an option
 				containment: $marker.parent(),
 				start: function( e, ui ) {
 					_this._setOption('isResizing', true);
-					_this.hideComment( $(this) );
+					_this.hideComment( this );
 				},
 				stop: function( e, ui ) {
 					_this._setOption('isResizing', false);
@@ -122,21 +191,18 @@
 					var $bubble = $(this).find('.jquery-annotate-bubble');
 					$bubble.css('top', $(this).height() + 5);
 
-					_this.showComment( $(this) );
+					_this.editMarker( this );
 				}
 	    })
 	    .on('click', function(e) {
 	    	// TODO: this section isn't working....
-				_this.setActiveMarker( $(this) );
+				_this.editMarker( this );
 	    })
-	    .on('mouseover', function(e) {
-	    	if(!_this.options.isResizing && !_this.options.isDragging) {
-		    	_this.showComment( $(this) );
-	    	}
-	    })
-	    .on('mouseout', function(e) {
-	    	// TODO: is comment bubble visible condition (?)
-		    	_this.hideComment( $(this) );
+	    .on('mouseup', function(e) {
+	    	var $this = $(this);
+	    	// TODO: This selection doesn't support multiple instances on one page...
+	    	$(".jquery-annotate-comment-wrap").not($this).css('z-index', 0);
+	    	$this.css('z-index', 1000);
 	    });
 
 			// Handle clicking the "X"
@@ -145,29 +211,72 @@
 				_this.deleteMarker( $(this).closest('.jquery-annotate-comment-wrap') );
 			});
 
-			if(startDrag) {
-				_this.simulateHandleEvent($marker, "se", e);
-			}
+			// Submit on enter
+			$marker.find('textarea').keypress(function(e) {
+		    if(e.which == 13) {
+		    	// TODO: cache $marker.find('form')
+	        $marker.find("form").submit();
+		    }
+			});
+
+			$marker.find("form").submit(function(e) {
+				e.preventDefault();
+
+				// Serialize the comments
+	    	var	serialized = {},
+	    			thisCommentID = $(this).closest('.jquery-annotate-comment-wrap').data('annotation-id'),
+	    			comment,
+	    			$el,
+	    			id;
+
+  			// TODO: _this context so I can have multipl .jquery-annotate-comment-wrap instances per page
+	    	$(".jquery-annotate-comment-wrap").each(function(e, element) {
+	    		$el = $(element);
+	    		id  = $el.data('annotation-id');
+
+	    		serialized[id] = {
+	    			value       : $el.find('textarea').val(),
+	    			width       : $el.width(),
+	    			height      : $el.height(),
+	    			offsetTop   : $el.css('top'),
+	    			offsetLeft  : $el.css('left')
+	    		}
+	    	});
+
+	    	comment = serialized[thisCommentID];
+	    	serialized = JSON.stringify(serialized);
+
+				// Trigger with the event, the text of this edited comment, and a serialized object of all comments
+				_this._trigger('commentSaved', event, [comment, serialized]);
+
+				$marker.find('p').html(comment.value);
+
+				_this.stopEditingMarker( $marker );
+
+			});
 
 			return $marker;
     },
 
-    // My delete func...
     deleteMarker: function($marker) {
-    	var _this = this,
-    			markerID = parseInt($marker.attr('id').replace("jquery-annotate-comment-wrap-",""), 10);
+    	var _this    = this,
+    			markerID = parseInt($marker.data('annotation-id'), 10);
+
+			// So before I call deleteMarker, I need to check if some other marker is open...
+			// Where is this called? If that's not the issue, check for an open one and see if
+			// it's the same instance as the one I'm currently deleting...
 
     	// If this was not the most recently added one, we need to decrement
     	// every higher number'd marker's number by 1
-    	if(markerID !== _this.options.commentNum) {
+    	// if(markerID !== _this.options.commentNum) {
     		while(markerID <= _this.options.commentNum) {
-    			$("#jquery-annotate-comment-wrap-" + (markerID + 1))
-    				.attr('id', "jquery-annotate-comment-wrap-" + markerID)
+    			$('*[data-annotation-id="' + (markerID + 1) + '"')
+    				.data('annotation-id', markerID)
     				.find(".jquery-annotate-number").html(markerID);
 
     			markerID++;
     		}
-    	}
+    	// }
 
     	this._setOption('commentNum', (this.options.commentNum - 1) );
     	$marker.remove();
@@ -175,63 +284,58 @@
 
     // Show the comment bubble...
     showComment: function($marker) {
-    	// TODO: isDragging and isResizing goes into options...so that I can return from here
-    	$marker.addClass('jquery-annotate-comment-hover');
+    	$marker = this.makeJqueryObj($marker);
+    	$marker.removeClass('jquery-annotate-comment-modifying');
     },
 
     // Hide the comment bubble...
-    // TODO: add logic for showing/hiding the comment form portion to this and above...
     hideComment: function($marker) {
-    	$marker.removeClass('jquery-annotate-comment-hover');
+    	$marker = this.makeJqueryObj($marker);
+    	$marker.addClass('jquery-annotate-comment-modifying');
     },
 
     // Set the active marker
-    setActiveMarker: function($marker) {
+    editMarker: function($marker) {
+    	var _this = this,
+  	    	$marker = _this.makeJqueryObj($marker);
 
-			// $marker.addClass('jquery-annotate-comment-edit');
+    	$(".jquery-annotate-comment-wrap").not($marker).each(function(i, element) {
+				_this.stopEditingMarker(element);
+    	});
 
-			/* Leaving off:
-					- Getting my .jquery-annotate-comment-edit and .jquery-annotate-comment-hover classes toggled correctly
-					  for different behavior. After that works properly, do the comment numbering inc/dec. After that, Refactor
-					  a bit then add some change callbacks where I can write ajax to save stuff
-			*/
+    	// TODO: I should be able to drop my review class completely. That's just done with hover now.
 
-    	// Ok come back to this. I want to have active and active-editing classes and show/hide based on that. My clicking
-    	// functions should toggle based on that....
+    	$marker.removeClass('jquery-annotate-comment-modifying')
+    		.addClass('jquery-annotate-comment-edit')
+    		.find('textarea').focus();
+    },
 
+    // TODO: rename this shit
+    stopEditingMarker: function($element) {
 
+    	$element = this.makeJqueryObj($element);
 
-    	// var activeClass = 'jquery-annotate-active-marker';
+    	if($element.find('textarea').val() == '') {
+    		this.deleteMarker($element);
+    	}
 
-    	// $marker.addClass(activeClass);
-    	// console.log($marker.hasClass(activeClass));
+    	// TODO: check if empty, if it is, delete it
+    	$element.removeClass("jquery-annotate-comment-review jquery-annotate-comment-edit jquery-annotate-comment-modifying");
+    },
 
-    	// if($marker.hasClass(activeClass)) {
-    	// 	return;
-    	// }
-
-    	// console.log('doesnt have active');
-
-    	// if(!$marker.hasClass(activeClass)) {
-	    // 	$(".jquery-annotate-comment-wrap").not($marker)
-	    // 		.removeClass(activeClass)
-	    // 		.find(".jquery-annotate-bubble")
-	    // 		.hide();
-
-	    // 	$marker.addClass(activeClass)
-	    // 		.find(".jquery-annotate-bubble")
-	    // 		.show();
-    	// }
+    // TODO: work this into other places so I can stop doing it per instance...
+    makeJqueryObj: function(obj) {
+    	return (obj instanceof jQuery) ? obj : $(obj);
     },
 
     markerHTML: function(num) {
     	return [
-    		"<div id='jquery-annotate-comment-wrap-", num, "' class='jquery-annotate-comment-wrap'>",
+    		"<div data-annotation-id='", num, "' class='jquery-annotate-comment-wrap'>",
 	    		"<div class='jquery-annotate-comment'>",
 	    			"<div class='jquery-annotate-bubble'>",
-		    			"<p>", "I'm a comment. Rainbow fucking unicorns. Fuck yeah. Code. Synergy. Fuck. Unicorns.", "</p>",
+		    			"<p></p>",
 		    			"<form action='' method='post'>",
-		    				"<textarea>I'm a comment. Rainbow fucking unicorns. Fuck yeah. Code. Synergy. Fuck.</textarea>",
+		    				"<textarea></textarea>",
 		    				"<input type='submit' value='OK' />",
 		    			"</form>",
 	    			"</div>",
@@ -241,25 +345,6 @@
 	    	"</div>"
     	].join("");
     },
-
-    // When we create a new comment by dragging over the image, we
-    // want to programatically trigger the jquery ui resizable handle
-    // at the same time
-    // http://stackoverflow.com/a/19768036/740836
-		simulateHandleEvent: function($item, handle, event){
-		  $item.find(".ui-resizable-" + handle)
-		    .trigger("mouseover")
-		    .trigger({
-		      type: "mousedown",
-		      which: 1,
-		      pageX: event.pageX,
-		      pageY: event.pageY
-		  });
-		},
-
-
-		// TODO: serialization function
-
 
     // Destroy an instantiated plugin and clean up
     // modifications the widget has made to the DOM

@@ -68,7 +68,7 @@
 			left: 0;
 			background: #fff;
 			padding: 10px;
-			width: 225px;
+			max-width: 225px;
 			border: 1px solid #ccc;
 			background: rgba(#fff, .95);
 			@include background-image(linear-gradient(top, rgba(#fff, .75), rgba(#fff, .9)));
@@ -86,24 +86,23 @@
 			textarea {
 				@include box-sizing(border-box);
 				border: 1px solid #ccc;
-				width: 100%;
+				width: 220px;
 				@include border-radius(3px);
 				@include box-shadow(1px 2px 3px 2px rgba(#000, 0.1) inset);
 				resize: none;
-				height: 60px;
+				height: 50px;
 				padding: 7px;
 				line-height: 120%;
 			}
 
 			input[type=submit] {
 				@include appearance(none);
-				@include box-shadow(0 1px 1px 0px rgba(255, 255, 255, 0.4) inset);
-				border: 1px solid #111;
-				background: #7D9753;
-				border: 1px solid darken(#7D9753, 10%);
+				border: 1px solid #2EE0F7;
+				border-color: darken(#2EE0F7, 20%);
+				background: #2EE0F7;
 				color: #fff;
-				text-shadow: 0 1px 1px rgba(#000,.5);
 				@include border-radius(3px);
+				text-shadow: 1px 1px 1px 1px rgba(#000, .6);
 				padding: 4px 15px;
 				font-size: 12px;
 				cursor: pointer;
@@ -131,21 +130,71 @@
 			}
 		}
 
-		// When we're active...
-		&.jquery-annotate-comment-hover,
-		&.jquery-annotate-comment-edit {
-			.jquery-annotate-bubble {
+		/* ------------------------------------------------ */
+		/* [ SHOW/HIDE THE COMMENT BUBBLE & EDITOR ] */
+		/* ------------------------------------------------ */
+		&:hover .jquery-annotate-bubble,
+		&.jquery-annotate-comment-review .jquery-annotate-bubble {
+			display: block;
+
+			form {
+				display: none;
+			}
+			p {
 				display: block;
 			}
 		}
-		&.jquery-annotate-comment-edit {
-			.jquery-annotate-bubble form {
+		&.jquery-annotate-comment-edit .jquery-annotate-bubble {
+			display: block;
+
+			form {
 				display: block;
 			}
 			p {
 				display: none;
 			}
 		}
+		&.jquery-annotate-comment-modifying .jquery-annotate-bubble {
+			display: none;
+		}
+
+		/* ------------------------------------------------ */
+		/* [ JQUERY UI RESIZING HANDLES ] */
+		/* ------------------------------------------------ */
+
+		.ui-resizable-handle {
+			background: #fff;
+			border: 1px solid #ccc;
+			width: 10px;
+			height: 10px;
+			display: block;
+			@include border-radius(100%);
+			position: absolute;
+			bottom: -5px;
+
+			&.ui-resizable-sw {
+				left: -5px;
+			}
+			&.ui-resizable-se {
+				right: -5px;
+			}
+		}
+		// Figure out the form show/hide later...
+
+		// &.jquery-annotate-comment-hover,
+		// &.jquery-annotate-comment-edit {
+		// 	.jquery-annotate-bubble {
+		// 		display: block;
+		// 	}
+		// }
+		// &.jquery-annotate-comment-edit {
+		// 	.jquery-annotate-bubble form {
+		// 		display: block;
+		// 	}
+		// 	p {
+		// 		display: none;
+		// 	}
+		// }
 
 	}
 }
