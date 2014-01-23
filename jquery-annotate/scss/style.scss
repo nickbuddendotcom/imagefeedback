@@ -9,8 +9,13 @@
 @import "compass/css3/user-interface";
 
 // Demo Stuff
+body {
+	background: #222;
+}
 #test {
-	margin: 150px;
+	display: inline-block;
+	margin: 100px;
+	@include box-shadow(0 5px 15px 7px rgba(#000, .5));
 }
 
 // Real Stuff
@@ -113,7 +118,7 @@
 				line-height: 18px;
 				color: #888;
 				font-weight: normal;
-				max-height: 200px;
+				width: 200px;
 				overflow-x: hidden;
 				overflow-y: scroll;
 			}

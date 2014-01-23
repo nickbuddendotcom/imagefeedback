@@ -68,11 +68,20 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 }
 
 /* line 12, ../scss/style.scss */
-#test {
-  margin: 150px;
+body {
+  background: #222;
 }
 
-/* line 17, ../scss/style.scss */
+/* line 15, ../scss/style.scss */
+#test {
+  display: inline-block;
+  margin: 100px;
+  -webkit-box-shadow: 0 5px 15px 7px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0 5px 15px 7px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 5px 15px 7px rgba(0, 0, 0, 0.5);
+}
+
+/* line 22, ../scss/style.scss */
 .jquery-annotate-wrap {
   position: relative;
   font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
@@ -81,13 +90,13 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-/* line 23, ../scss/style.scss */
+/* line 28, ../scss/style.scss */
 .jquery-annotate-wrap img {
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
 }
-/* line 26, ../scss/style.scss */
+/* line 31, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap {
   position: absolute;
   top: 0;
@@ -101,14 +110,14 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   /* [ JQUERY UI RESIZING HANDLES ] */
   /* ------------------------------------------------ */
 }
-/* line 33, ../scss/style.scss */
+/* line 38, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-comment {
   width: 100%;
   height: 100%;
   position: relative;
   cursor: pointer;
 }
-/* line 43, ../scss/style.scss */
+/* line 48, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-number,
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-delete {
   position: absolute;
@@ -132,15 +141,15 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   display: block;
   text-decoration: none;
 }
-/* line 59, ../scss/style.scss */
+/* line 64, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-number {
   left: -11px;
 }
-/* line 62, ../scss/style.scss */
+/* line 67, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-delete {
   right: -11px;
 }
-/* line 65, ../scss/style.scss */
+/* line 70, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-bubble {
   position: absolute;
   top: 55px;
@@ -168,11 +177,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   /* [ EDITING FORM ] */
   /* ----------------------------------------------------- */
 }
-/* line 82, ../scss/style.scss */
+/* line 87, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-bubble form {
   display: none;
 }
-/* line 86, ../scss/style.scss */
+/* line 91, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-bubble textarea {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -192,7 +201,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   padding: 7px;
   line-height: 120%;
 }
-/* line 98, ../scss/style.scss */
+/* line 103, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-bubble input[type=submit] {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -211,17 +220,17 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   font-size: 12px;
   cursor: pointer;
 }
-/* line 111, ../scss/style.scss */
+/* line 116, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-bubble p {
   font-size: 13px;
   line-height: 18px;
   color: #888;
   font-weight: normal;
-  max-height: 200px;
+  width: 200px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
-/* line 121, ../scss/style.scss */
+/* line 126, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .jquery-annotate-bubble:after {
   content: " ";
   display: block;
@@ -232,35 +241,35 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   border-right: 12px solid transparent;
   border-bottom: 6px solid #fff;
 }
-/* line 137, ../scss/style.scss */
+/* line 142, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap:hover .jquery-annotate-bubble, .jquery-annotate-wrap .jquery-annotate-comment-wrap.jquery-annotate-comment-review .jquery-annotate-bubble {
   display: block;
 }
-/* line 140, ../scss/style.scss */
+/* line 145, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap:hover .jquery-annotate-bubble form, .jquery-annotate-wrap .jquery-annotate-comment-wrap.jquery-annotate-comment-review .jquery-annotate-bubble form {
   display: none;
 }
-/* line 143, ../scss/style.scss */
+/* line 148, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap:hover .jquery-annotate-bubble p, .jquery-annotate-wrap .jquery-annotate-comment-wrap.jquery-annotate-comment-review .jquery-annotate-bubble p {
   display: block;
 }
-/* line 147, ../scss/style.scss */
+/* line 152, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap.jquery-annotate-comment-edit .jquery-annotate-bubble {
   display: block;
 }
-/* line 150, ../scss/style.scss */
+/* line 155, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap.jquery-annotate-comment-edit .jquery-annotate-bubble form {
   display: block;
 }
-/* line 153, ../scss/style.scss */
+/* line 158, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap.jquery-annotate-comment-edit .jquery-annotate-bubble p {
   display: none;
 }
-/* line 157, ../scss/style.scss */
+/* line 162, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap.jquery-annotate-comment-modifying .jquery-annotate-bubble {
   display: none;
 }
-/* line 165, ../scss/style.scss */
+/* line 170, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .ui-resizable-handle {
   background: #fff;
   border: 1px solid #ccc;
@@ -275,11 +284,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   position: absolute;
   bottom: -5px;
 }
-/* line 175, ../scss/style.scss */
+/* line 180, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .ui-resizable-handle.ui-resizable-sw {
   left: -5px;
 }
-/* line 178, ../scss/style.scss */
+/* line 183, ../scss/style.scss */
 .jquery-annotate-wrap .jquery-annotate-comment-wrap .ui-resizable-handle.ui-resizable-se {
   right: -5px;
 }

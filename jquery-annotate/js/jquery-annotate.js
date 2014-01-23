@@ -13,6 +13,7 @@
 			- give it four corners
 			- guess the drag direction (and drag handle) you want based on which direction you drag in
 			- I should probably rename 'Offset since it's actually abs positioning'
+			- comment bubbles themselves need to z-index themselves to the top
 			- resizing sometimes stops, when creating on drag. Probably something to do with triggering events.
 			- move the number and X onto the side, fadeout without hover to 40%ish, fade in on hover
 			- comment and refactor
